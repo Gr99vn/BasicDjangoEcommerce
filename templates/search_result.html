@@ -1,0 +1,50 @@
+{% extends "base.html" %}
+
+{% block title %}
+  Search
+{% endblock %}
+
+{% block css %}
+  <style>
+    .panel {
+      padding: 3% 5% !important;
+    }
+    .items {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      
+    }
+    a.card-title {
+      color: black;
+    }
+    .card {
+      /* Add shadows to create the "card" effect */
+      box-shadow: 0 4px 8px 0 rgba(0,0,0,0.2);
+      transition: 0.3s;
+    }
+
+    /* On mouse-over, add a deeper shadow */
+    .card:hover {
+      box-shadow: 0 8px 16px 0 rgba(0,0,0,0.2);
+    }
+
+  </style>
+{% endblock %}
+
+{% block content %}
+  <div class="panel books-panel p-4">
+    <h5 class="">Result found: {{ items|length }}</h5>
+    <div class="items">
+    {% for item in items %}
+      <div class="card m-2" style="width: 16rem;">
+        <img src="{{ item.image.url }}" class="card-img-top" alt="..." height="150px">
+        <div class="card-body bg-dark text-light">
+          <h5 class="card-title">{{ item.name }}</h5>
+          <a href="{% url 'item' item.pk %}" class="btn btn-primary">View</a>
+        </div>
+      </div>
+    {% endfor %}
+    </div>  
+  </div>
+
+{% endblock %}

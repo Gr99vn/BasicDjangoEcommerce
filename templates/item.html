@@ -1,0 +1,112 @@
+{% extends "base.html" %}
+{% load static %}
+{% load humanize %}
+{% block title %}
+  Item
+{% endblock %}
+{% block css %}
+  <link rel="stylesheet" href="{% static 'mycss/style.css' %}">
+{% endblock %}
+
+{% block content %}
+  <div class="container">
+    <img src="{{ item.image.url }}" class="card-img-top" alt="..." height="300rem">
+    <h2 class="my-4"> {{ item.name }} </h2>
+    <div class="row">
+      <div class="col-6">
+        <h4>Mô tả sản phẩm:</h4>
+        <p> {{ item.des }} </p>
+      </div>
+      <div class="col-6">
+        <h4>Thông tin sản phẩm: </h4>
+        {% if item.category.name == "Sách" %}
+        <p> Tác giả: {{ item.book.author }} </p>
+        <p> Nhà xuất bản: {{ item.book.publishing_company }} </p>
+        <p> Nhà cung cấp: {{ item.brand }} </p>
+        <p> Năm xuất bản: {{ item.book.publishcation_date|date:'Y' }} </p>
+        <p> Số trang: {{ item.book.number_of_page }} </p>
+        <!-- <p> Thể loại: {{ item.book.sub_category.0.name }} </p> -->
+        <p> Số lượng hiện có: {{ item.remaining_quantity }} </p>
+        {% elif item.category.name == "Quần áo" %}
+        <p> Nhà cung cấp: {{ item.brand }} </p>
+        <p> Chất liệu: {{ item.clothes.material }} </p>
+        <p> Số lượng hiện có: {{ item.remaining_quantity }} </p>
+        {% elif item.category.name == "Đồ điện tử" %}
+        <p> Nhà cung cấp: {{ item.brand }} </p>
+        <p> Bảo hành: {{ item.electric.guarantee }} tháng</p>
+        <p> Số lượng hiện có: {{ item.remaining_quantity }} </p>
+        {% endif %}
+      </div>
+    </div>
+    <div class='quantity'>
+      <h4>Đặt hàng ngay:</h4>
+      <div>
+        Số lượng:
+        <button class='btn-minus' type='button'>
+          <i class='fas fa-minus'></i>
+        </button>
+        <label for='inpquantity' class='lbl-quantity'>1</label> 
+        <input type='text' id='inpquantity' class='inp-quantity d-none'
+          name='inpquantity' value='1' readonly size='1'>
+        <button class='btn-plus' type='button'>
+          <i class='fas fa-plus'></i>
+        </button>
+      </div>
+    </div>
+    <br>
+    <div class="total" data-price="{{ item.cost }}" data-total="0">
+      <h4>Thành tiền: {{ item.cost|floatformat:0|intcomma }}d</h4>
+    </div>
+    <form action="{% url 'bookItem' %}" method="POST">
+      {% csrf_token %}
+      <input type="hidden" name="pk" id="pk" value="{{ item.pk }}">
+      <input type="hidden" name="quantity" id="quantity" value="1">
+      <input type="submit" class="btn btn-primary" value="Add to cart">
+    </form>
+  </div>
+{% endblock %}
+
+{% block js %}
+  <script type="text/javascript">
+    function formatNumber (num) {
+      return num.toString().replace(/(\d)(?=(\d{3})+(?!\d))/g, "$1,")
+    }
+
+    const inpCounter = document.querySelector(".inp-quantity");
+    const btnMinus = document.querySelector(".btn-minus");
+    const btnPlus = document.querySelector(".btn-plus");
+    let counter = inpCounter.getAttribute("value");
+
+    btnMinus.disabled = true;
+    btnMinus.addEventListener("click", (e) => {
+        if (counter === 2) {
+            counter--;
+            inpCounter.setAttribute("value", counter);
+            document.querySelector(".lbl-quantity").innerHTML = counter;
+            btnMinus.disabled = true;
+        }
+        if (counter > 2) {
+            counter--;
+            inpCounter.setAttribute("value", counter);
+            document.querySelector(".lbl-quantity").innerHTML = counter;
+        }
+        document.querySelector("#quantity").setAttribute("value", counter);
+        let total = document.querySelector(".total").dataset.price * document.querySelector("#inpquantity").value;
+        document.querySelector(".total").dataset.total = total;
+        document.querySelector(".total").querySelector("h4").innerHTML = "Thành tiền: " + formatNumber(total) + " VND";
+    });
+
+    btnPlus.addEventListener("click", (e) => {
+        counter++;
+        if (counter > 1) {
+            btnMinus.disabled = false;
+        }
+        inpCounter.setAttribute("value", counter);
+        document.querySelector("#quantity").setAttribute("value", counter);
+        document.querySelector(".lbl-quantity").innerHTML = counter;
+        let total = document.querySelector(".total").dataset.price * document.querySelector("#inpquantity").value;
+        document.querySelector(".total").dataset.total = total;
+        document.querySelector(".total").querySelector("h4").innerHTML = "Thành tiền: " + formatNumber(total) + " VND";
+    });
+  </script>
+{% endblock %}

@@ -1,0 +1,82 @@
+{% extends "base.html" %}
+
+{% block title %}
+  Home
+{% endblock %}
+
+{% block css %}
+  <style>
+    .panel {
+      padding: 3% 5% !important;
+    }
+    .items {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      
+    }
+
+    a.card-title {
+      color: black;
+    }
+    .card {
+      /* Add shadows to create the "card" effect */
+      box-shadow: 0 4px 8px 0 rgba(0,0,0,0.5);
+      transition: 0.3s;
+    }
+
+    /* On mouse-over, add a deeper shadow */
+    .card:hover {
+      box-shadow: 0 8px 16px 0 rgba(0,0,0,0.7);
+    }
+
+  </style>
+{% endblock %}
+
+{% block content %}
+  <div class="panel books-panel p-4">
+    <h4 class="">Sách</h4>
+    <div class="items">
+    {% for book in books %}
+      <div class="card m-2" style="width: 16rem;">
+        <img src="{{ book.item.image.url }}" class="card-img-top" alt="..." height="150px">
+        <div class="card-body bg-dark text-light">
+          <h5 class="card-title">{{ book.item.name }}</h5>
+          <p class="card-text">{{ book.author }}</p>
+          <a href="{% url 'item' book.item.pk %}" class="btn btn-primary">View</a>
+        </div>
+      </div>
+    {% endfor %}
+    </div>  
+  </div>
+  <div class="panel clothes-panel bg-dark text-light">
+    <h4 class="">Quần áo</h4>
+    <div class="items">
+    {% for cloth in clothes %}
+      <div class="card m-2" style="width: 16rem;">
+        <img src="{{ cloth.item.image.url }}" class="card-img-top" alt="..." height="150px">
+        <div class="card-body text-dark">
+          <h5 class="card-title">{{ cloth.item.name }}</h5>
+          <!-- <p class="card-text"></p> -->
+          <a href="{% url 'item' cloth.item.pk %}" class="btn btn-primary">View</a>
+        </div>
+      </div>
+    {% endfor %}
+    </div>  
+  </div>
+  <div class="panel electrics-panel">
+    <h4 class="">Đồ điện tử</h4>
+    <div class="items">
+    {% for electric in electrics %}
+      <div class="card m-2" style="width: 16rem;">
+        <img src="{{ electric.item.image.url }}" class="card-img-top" alt="..." height="150px">
+        <div class="card-body bg-dark text-light">
+          <h5 class="card-title">{{ electric.item.name }}</h5>
+          <!-- <p class="card-text"></p> -->
+          <a href="{% url 'item' electric.item.pk %}" class="btn btn-primary">View</a>
+        </div>
+      </div>
+    {% endfor %}
+    </div>  
+  </div>
+
+{% endblock %}

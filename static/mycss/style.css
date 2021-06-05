@@ -1,0 +1,12 @@
+input {
+  border: 1px solid white;
+  padding: 5px 10px;
+}
+
+.item {
+  border: 1px black solid;
+  display: grid;
+  grid-template-columns: 1fr 3fr 3fr 2fr 2fr;
+  padding: 10px 5px;
+  margin-bottom: 10px;
+}

@@ -1,0 +1,85 @@
+{% extends "base.html" %}
+
+{% load static %}
+{% load humanize %}
+
+{% block title %}
+  Order
+{% endblock %}
+
+{% block css %}
+  <style>
+    hr {
+      color: #243f3f;
+      border: none;
+      border-top: dotted 7px;
+      width: 5%;
+      margin: 70px auto;
+    }
+    .order-info {
+      text-align: center;
+    }
+
+    .nav-user, .nav-func {
+      align-self: flex-end;
+    }
+  </style>  
+{% endblock %}
+
+{% block content %}
+<div class="container mt-3">
+{% for orderItem in orderItems %}
+<div class="order-item">
+  <div class="order-info bg-dark text-light row pt-2">
+    <p class="col-6">Order time: {{ orderItem.order.order_time }}</p>
+    <p class="col-6">Status: {{ orderItem.order.get_order_status_display }}</p>
+  </div>
+  <div class="cart-items">
+    <table class="table">
+      <thead>
+        <tr>
+          <th scope="col">#</th>
+          <th scope="col">Product Name</th>
+          <th scope="col">Cost (VND)</th>
+          <th scope="col">Quantity</th>
+          <th scope="col">To (VND)</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% load mathfilters %}
+        {% for cartItem in orderItem.cartItems %}
+        <tr>
+          <th scope="row">{{ forloop.counter }}</th>
+          <td style="width: 40rem;">{{ cartItem.item.name }}</td>
+          <td>{{ cartItem.item.cost|floatformat:0|intcomma }}</td>
+          <td>{{ cartItem.quantity }}</td>
+          <td class="item-price" data-amount="{{ cartItem.item.cost|mul:cartItem.quantity }}">{{ cartItem.item.cost|mul:cartItem.quantity|floatformat:0|intcomma }}</td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+  <div class="ship-info row">
+    <div class="col-8">
+      <p>Ship provider: {{ orderItem.order.shipment.ship_provider }}</p>
+      <p>Ship address: {{ orderItem.order.shipment.ship_address.get_detailed_address }}</p>
+      <p>Phone: {{ orderItem.order.shipment.ship_address.phone }}</p>
+    </div>
+    <div class="col-4 d-flex" style="flex-direction: column; align-items: flex-end;">
+      <p>Ship fee: {{ orderItem.order.shipment.ship_fee|floatformat:0|intcomma }} VND</p>
+      <p>Total: {{ orderItem.order.total|floatformat:0|intcomma }} VND</p>
+    </div>
+  </div>
+</div>
+<hr class="mt-4 mb-4">
+{% empty %}
+  No ordered item yet.
+{% endfor %}
+</div>
+{% endblock %}
+
+{% block js %}
+<script>
+  $("#nav-order").addClass("active");
+</script>
+{% endblock %}

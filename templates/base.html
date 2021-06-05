@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>
+    {% block title %}
+    {% endblock %}
+  </title>
+  {% load static %}
+  {% load humanize %}
+  <link rel="stylesheet" href="{% static 'bootstrap/css/bootstrap.min.css' %}">
+  <link rel="stylesheet" href="{% static 'fontawesome-free-5.13.0-web/css/all.min.css' %}">
+  {% block css %}
+  {% endblock %}
+</head>
+<body>
+  <!-- header -->
+  <header>
+    <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
+      <a class="navbar-brand" href="{% url 'home' %}">Shopping</a>
+      <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarNavAltMarkup" aria-controls="navbarNavAltMarkup" aria-expanded="false" aria-label="Toggle navigation">
+        <span class="navbar-toggler-icon"></span>
+      </button>
+      <div class="collapse navbar-collapse" id="navbarNavAltMarkup">
+        <div class="navbar-nav">
+          <a class="nav-item nav-link" id="nav-cart" href="{% url 'cart' %}">Cart</a>
+          <a class="nav-item nav-link" id="nav-order" href="{% url 'orderView' %}">Order</a>
+        </div>
+        <div class="navbar-nav ml-auto">
+          <form class="form-inline my-2 my-lg-0 mx-2" action="{% url 'search' %}" method="GET">
+            <input class="form-control mr-sm-2" type="search" placeholder="Search" name="search_data" aria-label="Search">
+            <button class="btn btn-outline-light my-2 my-sm-0" type="submit"><i class="fas fa-search"></i></button>
+          </form>
+          {% if user.is_anonymous %}
+          <a class="nav-item nav-link nav-user">Hello, Anonymous user</a>
+          <a class="nav-item nav-link nav-func" href="{% url 'login'%}">Login</a>
+          {% else %}
+          <a class="nav-item nav-link nav-user" id="nav-account" href="{% url 'myAccount' %}">Hello, {{ user }}</a>
+          <a class="nav-item nav-link nav-func" href="{% url 'logout'%}">Logout</a>
+          {% endif %}
+        </div>
+      </div>
+    </nav>
+  </header>
+
+  <main class="">
+    {% block content %}
+    {% endblock %}
+  </main>
+
+  <!-- footer -->
+  <!-- <footer>
+    copyright@2021
+  </footer> -->
+
+  <script src="{% static 'jquery/jquery.min.js' %}" ></script>
+  <script src="https://cdn.jsdelivr.net/npm/popper.js@1.16.0/dist/umd/popper.min.js" integrity="sha384-Q6E9RHvbIyZFJoft+2mJbHaEWldlvI9IOYy5n3zV9zzTtmI3UksdQRVvoxMfooAo" crossorigin="anonymous"></script>
+  <script src="{% static 'bootstrap/js/bootstrap.min.js' %}"></script>
+  <!-- myscript -->
+  {% block js %}
+  {% endblock %}
+</body>
+</html>

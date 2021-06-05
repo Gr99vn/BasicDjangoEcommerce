@@ -1,0 +1,224 @@
+{% extends "base.html" %} 
+{% load static %} 
+{% load humanize %} 
+{% block title %} 
+  Cart 
+{% endblock %} 
+{% block css %}
+<link rel="stylesheet" href="{% static 'mycss/style.css' %}" />
+{% endblock %} 
+{% block content %}
+<div class="cart-items container my-3">
+  {% for cartItem in cartItems %}
+  <div class="item" id="item-{{ cartItem.pk }}">
+    <input data-no='{{ forloop.counter }}' class='dp-cb checkbox block' type='checkbox'>
+    <p class="item-name">{{ cartItem.item.name }}</p>
+    <p class="item-price">Price: {{ cartItem.item.cost|floatformat:0|intcomma }} VND</p>
+    <div>
+      <span class="item-quantity">Quantity: </span>
+      {% if cartItem.quantity > 1 %}
+      <button class="btn-minus" type="button" data-no="{{ forloop.counter }}">
+        <i class="fas fa-minus"></i>
+      </button>
+      {% else %}
+      <button
+        class="btn-minus"
+        type="button"
+        data-no="{{ forloop.counter }}"
+        disabled
+      >
+        <i class="fas fa-minus"></i>
+      </button>
+      {% endif %}
+      <label
+        for="inpquantity{{ forloop.counter }}"
+        class="lbl-quantity{{ forloop.counter }}"
+      >
+        {{ cartItem.quantity }}
+      </label>
+      <input
+        type="text"
+        data-no="{{ forloop.counter }}"
+        id="inpquantity{{ forloop.counter }}"
+        class="inp-quantity d-none"
+        name="inpquantity"
+        value="{{ cartItem.quantity }}"
+        readonly
+        size="1"
+      />
+      <button class="btn-plus" type="button" data-no="{{ forloop.counter }}">
+        <i class="fas fa-plus"></i>
+      </button>
+    </div>
+    <div class="line-item-action">
+      <form method="post" class="delete-form d-inline mf-{{ forloop.counter }} d-inline">
+        {% csrf_token %}
+        <input type="hidden" name="cartItemId" value="{{ cartItem.pk }}">
+        <input type="hidden" name="quantity" id="dqtt{{ forloop.counter }}" value="1">
+        <input type="submit" name="delete" value="Delete">
+      </form>
+      <form method="post" class="modify-form d-inline mf-{{ forloop.counter }}">
+        {% csrf_token %}
+        <input type="hidden" name="cartItemId" value="{{ cartItem.pk }}">
+        <input type="hidden" name="quantity" id="mqtt{{ forloop.counter }}" value="1">
+        <input type="submit" value="Save">
+      </form>
+    </div>
+  </div>
+  {% empty %}
+    No booked item yet.
+  {% endfor %}
+  <form id="pay-form" method="POST" action="{% url 'payment' %}">
+    {% csrf_token %}
+    {% for cartItem in cartItems %}
+    <input data-no='{{ forloop.counter }}' id="cb{{ forloop.counter }}" class='checkbox d-none' type='checkbox' name='cartItemIds[]' value='{{ cartItem.pk }}'>
+    {% endfor %}
+    <input type="submit" id="paybtn" value="Payment" class="d-none">
+  </form>
+</div>
+{% endblock %} 
+{% block js %}
+<script>
+  $("#nav-cart").addClass("active");
+  let cbcount = 0;
+  $(".checkbox").each(function () {
+    $(this).click(function() {
+      if ($(this).prop("checked") == true) {
+        ++cbcount;
+      } else {
+        --cbcount;
+      }
+      if (cbcount > 0) {
+        $("#paybtn").removeClass("d-none");
+      } else {
+        $("#paybtn").addClass("d-none");
+      }
+    })
+  })
+  $(".modify-form").each(function() {
+    $(this).submit(function(e) {
+      e.preventDefault();
+      var serializedData = $(this).serialize();
+      console.log(serializedData);
+      $.ajax({
+          type: 'POST',
+          url: "{% url 'modifyCartItem' %}",
+          data: serializedData,
+          success: function (response) {
+            if (response["msg"]) {
+              alert(response["msg"]);
+            }
+          },
+          error: function (response) {
+            if (response["msg"]) {
+              alert(response["msg"]);
+            }
+          }
+      })
+    })
+  });
+  $(".delete-form").each(function() {
+    $(this).submit(function(e) {
+      e.preventDefault();
+      var serializedData = $(this).serialize();
+      console.log(serializedData);
+      $.ajax({
+          type: 'POST',
+          url: "{% url 'deleteCartItem' %}",
+          data: serializedData,
+          success: function (response) {
+            if (response["msg"]) {
+              alert(response["msg"]);
+            }
+            if (response["pk"]) {
+              $("#item-"+response["pk"]).remove();
+            }
+          },
+          error: function (response) {
+            if (response["msg"]) {
+              alert(response["msg"]);
+            }
+          }
+      })
+    })
+  });
+</script>
+<script type="text/javascript">
+  function formatNumber(num) {
+    return num.toString().replace(/(\d)(?=(\d{3})+(?!\d))/g, "$1,");
+  }
+
+  const inpCounters = document.querySelectorAll(".inp-quantity");
+  const minusBtns = document.querySelectorAll(".btn-minus");
+  const plusBtns = document.querySelectorAll(".btn-plus");
+  const checkboxs = document.querySelectorAll(".checkbox");
+  const totals = document.querySelectorAll(".total");
+
+  let counters = [];
+  inpCounters.forEach((inp) => {
+    counters.push(inp.value);
+  });
+
+  totals.forEach((item) => {
+    let totalPrice = counters[item.dataset.no - 1] * item.dataset.price;
+    item.dataset.total = totalPrice;
+    item.innerHTML = formatNumber(totalPrice) + " VND";
+  });
+  minusBtns.forEach((btn) => {
+    btn.addEventListener("click", (e) => {
+      counters[btn.dataset.no - 1]--;
+      inpCounters[btn.dataset.no - 1].setAttribute(
+        "value",
+        counters[btn.dataset.no - 1]
+      );
+      document.querySelector(".lbl-quantity" + btn.dataset.no).innerHTML =
+        counters[btn.dataset.no - 1];
+      document.querySelector("#dqtt" + btn.dataset.no).value = counters[btn.dataset.no - 1];
+      document.querySelector("#mqtt" + btn.dataset.no).value = counters[btn.dataset.no - 1];
+      if (counters[btn.dataset.no - 1] === 1) {
+        btn.disabled = true;
+      }
+      totals.forEach((item) => {
+        if (item.dataset.no === e.target.dataset.no) {
+          let totalPrice = counters[item.dataset.no - 1] * item.dataset.price;
+          item.dataset.total = totalPrice;
+          item.innerHTML = formatNumber(totalPrice) + " VND";
+        }
+      });
+    });
+  });
+
+  plusBtns.forEach((btn) => {
+    btn.addEventListener("click", (e) => {
+      minusBtns.forEach((mbtn) => {
+        if (mbtn.dataset.no === btn.dataset.no) {
+          mbtn.disabled = false;
+        }
+      });
+      counters[btn.dataset.no - 1]++;
+      inpCounters[btn.dataset.no - 1].setAttribute(
+        "value",
+        counters[btn.dataset.no - 1]
+      );
+      document.querySelector(".lbl-quantity" + btn.dataset.no).innerHTML =
+        counters[btn.dataset.no - 1];
+      document.querySelector("#dqtt" + btn.dataset.no).value = counters[btn.dataset.no - 1];
+      document.querySelector("#mqtt" + btn.dataset.no).value = counters[btn.dataset.no - 1];
+      totals.forEach((item) => {
+        if (item.dataset.no === e.target.dataset.no) {
+          let totalPrice = counters[item.dataset.no - 1] * item.dataset.price;
+          item.dataset.total = totalPrice;
+          item.innerHTML = formatNumber(totalPrice) + " VND";
+        }
+      });
+    });
+  });
+
+  document.querySelectorAll(".dp-cb").forEach(item => {
+    item.addEventListener("change", () => {
+      document.querySelector("#cb"+item.dataset.no).checked = item.checked;
+    });
+  });
+</script>
+
+{% endblock %}
