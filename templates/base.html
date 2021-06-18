@@ -27,17 +27,25 @@
         <div class="navbar-nav">
           <a class="nav-item nav-link" id="nav-cart" href="{% url 'cart' %}">Cart</a>
           <a class="nav-item nav-link" id="nav-order" href="{% url 'orderView' %}">Order</a>
+          {% if request.user.is_staff %}
+          <a class="nav-item nav-link" id="nav-staff" href="{% url 'staff_home' %}">Staff Function</a>
+          {% endif %}
         </div>
         <div class="navbar-nav ml-auto">
           <form class="form-inline my-2 my-lg-0 mx-2" action="{% url 'search' %}" method="GET">
-            <input class="form-control mr-sm-2" type="search" placeholder="Search" name="search_data" aria-label="Search">
+            <input class="form-control mr-sm-2" type="search" placeholder="Search" name="search_data" aria-label="Search" value="{{ search_data }}">
             <button class="btn btn-outline-light my-2 my-sm-0" type="submit"><i class="fas fa-search"></i></button>
           </form>
           {% if user.is_anonymous %}
           <a class="nav-item nav-link nav-user">Hello, Anonymous user</a>
           <a class="nav-item nav-link nav-func" href="{% url 'login'%}">Login</a>
-          {% else %}
+          {% elif not user.is_anonymous %}
           <a class="nav-item nav-link nav-user" id="nav-account" href="{% url 'myAccount' %}">Hello, {{ user }}</a>
+          {% endif %}
+          {% if not user.is_anonymous and not user.is_staff %}
+          <a class="nav-item nav-link nav-noti" href="{% url 'notification' %}">Notificaton</a>
+          {% endif %}
+          {% if not user.is_anonymous%}
           <a class="nav-item nav-link nav-func" href="{% url 'logout'%}">Logout</a>
           {% endif %}
         </div>

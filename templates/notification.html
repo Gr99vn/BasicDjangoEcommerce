@@ -1,0 +1,33 @@
+{% extends "base.html" %}
+
+{% load static %}
+{% load humanize %}
+
+{% block title %}
+  Notification
+{% endblock %}
+
+{% block css %}
+  <style>
+    table, tr, td {
+      padding: 5px;
+    }
+    input {
+      padding: 3px 5px;
+    }
+  </style>  
+{% endblock %}
+
+{% block content %}
+<div class="container">
+  {% for message in messages %}
+    <p>{{ message.content }}</p>
+  {% endfor %}
+</div>
+{% endblock %}
+
+{% block js %}
+<script>
+  $(".nav-noti").addClass("active");
+</script>
+{% endblock %}

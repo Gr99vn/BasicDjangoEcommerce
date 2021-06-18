@@ -3,7 +3,9 @@ from django.http.response import HttpResponse, JsonResponse
 from django.shortcuts import get_object_or_404, redirect, render
 from .models import *
 from django.urls.base import reverse
-from django.contrib.auth.decorators import login_required
+from django.contrib.auth.decorators import login_required, user_passes_test
+import random
+from datetime import datetime
 
 # Create your views here.
 def myAccount(request):
@@ -44,12 +46,72 @@ def home(request):
 
 def item(request, pk):
   item = Item.objects.get(pk=pk)
-
+  reviews = Review.objects.filter(item=item).all()
+  star_average, review_count = 0, len(reviews)
+  for r in reviews:
+    star_average += r.star
+  star_average = 0 if len(reviews) == 0 else round(star_average / review_count, 1)
+  suggests = []
+  if item.category.name == "Sách":
+    books = list(Book.objects.all())
+    books.remove(item.book)
+    item_sub_categorys = item.book.sub_category.all()
+    for book in books:
+      check = False
+      for sub_c in item_sub_categorys:
+        if sub_c in book.sub_category.all():
+          check = True
+      if check:
+        suggests.append(book)
+    if not suggests:
+      suggests = books if len(books) <= 4 else books[0:4]
+  elif item.category.name == "Quần áo":
+    clothes = list(Clothes.objects.all())
+    clothes.remove(item.clothes)
+    for cloth in clothes:
+      check = False
+      if item.clothes.sub_category == cloth.sub_category:
+        check = True
+      if check:
+        suggests.append(cloth)
+    if not suggests:
+      suggests = clothes if len(clothes) <= 4 else clothes[0:4]
+  elif item.category.name == "Đồ điện tử":
+    electric = list(Electric.objects.all())
+    electric.remove(item.electric)
+    for elect in electric:
+      check = False
+      if item.electric.sub_category == elect.sub_category:
+        check = True
+      if check:
+        suggests.append(elect)
+    if not suggests:
+      suggests = electric if len(electric) <= 4 else electric[0:4]
+  if len(suggests) > 4:
+    random.shuffle(suggests)
+    suggests = suggests[0:4]
   if request.method == "GET":
     context = {
-      "item": item
+      "item": item,
+      "suggests": suggests,
+      "star_average": star_average,
+      "review_count": review_count,
+      "reviews": reviews,
+      "dstars": [1,2,3,4,5],
     }
     return render(request, "item.html", context)
+
+@login_required
+def review(request):
+  if request.method == "POST":
+    review = Review()
+    review.customer = request.user.customer_info
+    review.star = request.POST.get("rating")
+    review.content = request.POST.get("content")
+    item = int(request.POST.get("item"))
+    review.item = Item.objects.get(pk=item)
+    review.save()
+    return redirect(reverse('item', args=[item]))
 
 @login_required
 def bookItem(request):
@@ -188,8 +250,92 @@ def orderView(request):
 def search(request):
   if request.method == "GET":
     searchData = request.GET.get("search_data")
-    items = Item.objects.filter(name__contains=searchData)
+    itemms = Item.objects.all()
+    items = []
+    for item in itemms:
+      if searchData.strip().lower() in item.name.lower():
+        items.append(item) 
+    if not items:
+      categorys = Category.objects.all()
+      for category in categorys:
+        if searchData.lower() in category.name.lower():
+          items.extend(list(category.category_items.all()))
+    if not items:
+      sub_categorys = SubCategory.objects.all()
+      for sub_category in sub_categorys:
+        if searchData.lower() in sub_category.name.lower():
+          items.extend(list(book.item for book in sub_category.book_sub_category.all()))
+          items.extend(list(clothes.item for clothes in sub_category.clothes_sub_category.all()))
+          items.extend(list(electric.item for electric in sub_category.electric_sub_category.all()))
     context = {
       "items": items,
+      "search_data": searchData,
     }
     return render(request, "search_result.html", context)
+
+@user_passes_test(lambda user : user.is_staff)
+def staff_home(request):
+  return render(request, "staff_home.html")
+
+@user_passes_test(lambda user : user.is_staff)
+def order_management(request, status):
+  if request.method == "GET": 
+    orders = []
+    status = status.upper()
+    orders = Order.objects.filter(order_status=status)
+    context = {
+      "orders": orders,
+      "status": status
+    }
+    return render(request, "order_management.html", context)
+  elif request.method == "POST":
+    order_id = int(request.POST.get("order_id"))
+    order_status = request.POST.get("order_status")
+    order = Order.objects.get(pk=order_id)
+    order.order_status = order_status
+    order.save()
+    now = datetime.now()
+    dt_string = now.strftime("%d/%m/%Y %H:%M:%S")
+    message = Message()
+    message.staff = request.user.staff_info
+    message.customer = order.customer
+    rev_status = order_status.lower()
+    message.content = f"Your order code OD{order.pk} is {rev_status} at {dt_string}."
+    message.save()
+    return redirect(reverse("order_management", args=[rev_status]))
+
+@user_passes_test(lambda user : user.is_staff)
+def order_detail(request, pk):
+  order = Order.objects.get(pk=pk)
+  cartItems = []
+  for cartItem in CartItem.objects.filter(order=order):
+    cartItems.append(cartItem)
+  context = {
+    "order": order,
+    "cartItems": cartItems,
+  }
+  return render(request, "order_detail.html", context)
+
+@login_required
+def get_notifycation(request):
+  messages = Message.objects.filter(customer=request.user.customer_info).all()
+  context = {
+    "messages": messages,
+  }
+  return render(request, "notification.html", context)
+
+@user_passes_test(lambda user : user.is_staff)
+def feedback(request):
+  if request.method == "GET":
+    reviews = Review.objects.all()
+    context = {
+      "reviews": reviews,
+      "dstars": [1,2,3,4,5],
+    }
+    return render(request, "feedback.html", context)
+  elif request.method == "POST":
+    feedback = ShopFeedback()
+    feedback.review = Review.objects.get(pk=int(request.POST.get("review_id")))
+    feedback.content = request.POST.get("content")
+    feedback.save()
+    return redirect(reverse("feedback"))

@@ -1,0 +1,29 @@
+{% extends "base.html" %}
+
+{% block title %}
+  Staff Home
+{% endblock %}
+
+{% load humanize %}
+
+{% block css %}
+  <style>
+  </style>
+{% endblock %}
+
+{% block content %}
+  <div class="container">
+    <div class="order-management">
+      <a href="{% url 'order_management' 'new' %}" class="btn btn-success">Quản lý đơn hàng</a>
+    </div>
+    <div class="review-management">
+      <a href="{% url 'feedback' %}" class="btn btn-info">Phản hồi ý kiến khách hàng</a>
+    </div>
+  </div>
+{% endblock %}
+
+{% block js %}
+<script>
+  $("#nav-staff").addClass("active");
+</script>
+{% endblock %}

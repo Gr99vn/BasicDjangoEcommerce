@@ -1,0 +1,81 @@
+{% extends "base.html" %}
+
+{% block title %}
+  Order Management
+{% endblock %}
+
+{% load humanize %}
+
+{% block css %}
+  <style>
+    .order-item {
+      display: grid;
+      grid-template-columns: 1fr 4fr 2fr 2fr 3fr;
+      border-radius: 7px;
+    }
+
+    .order-item-in {
+      display: flex;
+      /* justify-content: center; */
+      align-items: center;
+    }
+  </style>
+{% endblock %}
+
+{% block content %}
+  <div class="container">
+    <div class="order-menu p-3">
+      <a class="btn btn-secondary" href="{% url 'order_management' 'new' %}">Đơn hàng mới</a>
+      <a class="btn btn-secondary" href="{% url 'order_management' 'accepted' %}">Đã chấp nhận</a>
+      <a class="btn btn-secondary" href="{% url 'order_management' 'delivering' %}">Đang vận chuyển</a>
+      <a class="btn btn-secondary" href="{% url 'order_management' 'completed' %}">Đã hoàn thành</a>
+    </div>
+    <div class="orders">
+      <h4>Số đơn: {{ orders|length }}</h4>
+      {% for order in orders %}
+        <div class="order-item bg-dark text-light p-2 m-2">
+          <div class="order-item-in no"> {{ forloop.counter }} </div>
+          <div class="order-item-inf customer">
+            <div class="name"> Tên: {{ order.customer.user }} </div>
+            <div class="phone"> SDT: {{ order.customer.phone }} </div>
+            <div class="address" style="width: 85%;"> Địa chỉ: {{ order.shipment.ship_address.get_detailed_address }} </div>
+          </div>
+          <div class="order-item-in total"> Tổng cộng:<br> {{ order.total|floatformat:0|intcomma }} VND</div>
+          {% if order.order_status == "NEW" %}
+          <div class="order-item-in status"> Trạng thái:<br> Mới </div>
+          {% elif order.order_status == "ACCEPTED"%}
+          <div class="order-item-in status"> Trạng thái:<br> Đã chấp nhận </div>
+          {% elif order.order_status == "DELIVERING" %}
+          <div class="order-item-in status"> Trạng thái:<br> Đang vận chuyển </div>
+          {% elif order.order_status == "COMPLETED" %}
+          <div class="order-item-in status"> Trạng thái:<br> Đã Hoàn thành </div>
+          {% endif %}
+          <div class="order-item-in action justify-content-end">
+            <a href=" {% url 'order_detail' order.pk %} " class="btn btn-primary m-1">Xem</a>
+            <form action="" method="post">
+              {% csrf_token %}
+              <input type="hidden" name="order_id" value=" {{ order.pk }} ">
+              {% if status == "NEW" %}
+              <input type="hidden" name="order_status" value="ACCEPTED">
+              <button class="btn btn-success m-1">Chấp nhận</button>
+              {% elif status == "ACCEPTED"%}
+              <input type="hidden" name="order_status" value="DELIVERING">
+              <button class="btn btn-success m-1">Vận chuyển</button>
+              {% elif status == "DELIVERING" %}
+              <input type="hidden" name="order_status" value="COMPLETED">
+              <button class="btn btn-success m-1">Hoàn thành</button>
+              {% endif %}
+            </form>
+          </div>
+        </div>
+      {% endfor %}
+    </div>
+  </div>
+{% endblock %}
+
+{% block js %}
+<script>
+  $("#nav-staff").addClass("active");
+  
+</script>
+{% endblock %}

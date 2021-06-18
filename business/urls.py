@@ -12,6 +12,7 @@ urlpatterns = [
   path("myAccount/", view=views.myAccount, name="myAccount"),
   path("customerAddress/", view=views.customerAddress, name="customerAddress"),
   path("item/<int:pk>/", views.item, name="item"),
+  path("review/", views.review, name="review"),
   path("bookItem/", views.bookItem, name="bookItem"),
   path("cart/", views.cart, name="cart"),
   path("modifyCartItem/", views.modifyCartItem, name="modifyCartItem"),
@@ -20,6 +21,11 @@ urlpatterns = [
   path("createOrder/", views.createOrder, name="createOrder"),
   path("orderView/", views.orderView, name="orderView"),
   path("search/", views.search, name="search"),
+  path("staff_home/", views.staff_home, name="staff_home"),
+  path("order_management/<str:status>/", views.order_management, name="order_management"),
+  path("order_detail/<int:pk>/", views.order_detail, name="order_detail"),
+  path("notification/", views.get_notifycation, name="notification"),
+  path("feedback/", views.feedback, name="feedback"),
 ]
 
 urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)

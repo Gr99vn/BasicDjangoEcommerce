@@ -4,6 +4,8 @@
   Home
 {% endblock %}
 
+{% load humanize %}
+
 {% block css %}
   <style>
     .panel {
@@ -40,9 +42,8 @@
       <div class="card m-2" style="width: 16rem;">
         <img src="{{ book.item.image.url }}" class="card-img-top" alt="..." height="150px">
         <div class="card-body bg-dark text-light">
-          <h5 class="card-title">{{ book.item.name }}</h5>
-          <p class="card-text">{{ book.author }}</p>
-          <a href="{% url 'item' book.item.pk %}" class="btn btn-primary">View</a>
+          <h5><a class="text-light" href="{% url 'item' book.item.pk %}">{{ book.item.name }}</a></h5>
+          <p class="card-text">{{ book.item.cost|floatformat:0|intcomma }} VND</p>
         </div>
       </div>
     {% endfor %}
@@ -55,9 +56,8 @@
       <div class="card m-2" style="width: 16rem;">
         <img src="{{ cloth.item.image.url }}" class="card-img-top" alt="..." height="150px">
         <div class="card-body text-dark">
-          <h5 class="card-title">{{ cloth.item.name }}</h5>
-          <!-- <p class="card-text"></p> -->
-          <a href="{% url 'item' cloth.item.pk %}" class="btn btn-primary">View</a>
+          <h5><a class="text-dark" href="{% url 'item' cloth.item.pk %}">{{ cloth.item.name }}</a></h5>
+          <p class="card-text">{{ cloth.item.cost|floatformat:0|intcomma }} VND</p>
         </div>
       </div>
     {% endfor %}
@@ -70,9 +70,8 @@
       <div class="card m-2" style="width: 16rem;">
         <img src="{{ electric.item.image.url }}" class="card-img-top" alt="..." height="150px">
         <div class="card-body bg-dark text-light">
-          <h5 class="card-title">{{ electric.item.name }}</h5>
-          <!-- <p class="card-text"></p> -->
-          <a href="{% url 'item' electric.item.pk %}" class="btn btn-primary">View</a>
+          <h5><a class="text-light" href="{% url 'item' electric.item.pk %}">{{ electric.item.name }}</a></h5>
+          <p class="card-text">{{ electric.item.cost|floatformat:0|intcomma }} VND</p>
         </div>
       </div>
     {% endfor %}

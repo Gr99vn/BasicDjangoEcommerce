@@ -1,0 +1,111 @@
+{% extends "base.html" %}
+
+{% load static %}
+{% load humanize %}
+
+{% block title %}
+  Notification
+{% endblock %}
+
+{% block css %}
+  <style>
+    .star {
+      font-size: 20px;
+    }
+
+    .rated {
+      color: orange;
+    }
+
+    .rating {
+      counter-reset: rate_value 0;
+    }
+
+    .star.ustar.rated {
+      counter-increment: rate_value 1;
+    }
+
+    .rating::after {
+      margin-top: 20px;
+      display: block;
+      content: "Đánh giá " counter(rate_value) "/5";
+    }
+
+    .form-control {
+      width: 100%;
+    }
+
+    .review-form {
+      display: grid;
+      grid-template-columns: 1fr 2fr;
+      column-gap: 20px;
+    }
+
+    .review-container {
+      margin-bottom: 20px;
+    }
+
+    .user-comment {
+      padding: 5px 10px;
+    }
+
+    .user-comment-rated {
+      margin: auto 10px;
+      color: #393e46;
+      font-weight: lighter;
+    }
+
+    .comment {
+      margin-left: 15px;
+    }
+
+    .feedback-item {
+      border: #393e46 1px solid;
+    }
+
+  </style>  
+{% endblock %}
+
+{% block content %}
+<div class="container">
+  {% for review in reviews %}
+  {% if not review.shop_feedback.all %}
+  <div class="feedback-item row mb-2 p-2">
+    <div class="col-4">
+      <img src="{{ review.item.image.url }}" class="card-img-top" alt="..." height="200px">
+      <p> {{ review.item.name }} </p>
+    </div>
+    <div class="col-8">
+      <div class="user-comment">
+        <h5 class="username head">
+          <span><i class="fa fa-user"></i></span> 
+          {{ review.customer.user }} 
+          <span class="user-comment-rated"> đã đánh giá </span> 
+          {% for i in dstars %}
+            {% if i <= review.star %}
+              <span class="star rated">★</span>
+            {% else %}
+              <span class="star">★</span>
+            {% endif %}
+          {% endfor %}
+        </h4>
+        <p class="comment"><span><i class="fa fa-comment"></i></span> {{review.content}}</p>
+      </div>
+      <form action="" method="post">
+        {% csrf_token %}
+        <input type="hidden" name="review_id" value="{{ review.pk }}">
+        <textarea name="content" rows="3" class="form-control">{{ review.shop_feedback.all.0.content }}</textarea>
+        <button class="btn btn-primary mt-2">Send</button>
+      </form>
+    </div>
+  </div>
+  {% endif %}
+  {% endfor %}
+</div>
+{% endblock %}
+
+{% block js %}
+<script>
+  $(".nav-noti").addClass("active");
+</script>
+{% endblock %}

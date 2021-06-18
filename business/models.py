@@ -86,6 +86,9 @@ class Book(models.Model):
   sub_category = models.ManyToManyField(SubCategory, related_name="book_sub_category")
   def __str__(self):
     return f"Book item - {self.item}"
+  @property
+  def get_book_sub_category(self):
+    return ",".join([s.name for s in self.sub_category.all()])
 
 class Clothes(models.Model):
   item = models.OneToOneField(Item, on_delete=models.CASCADE, related_name="clothes")

@@ -5,7 +5,88 @@
   Item
 {% endblock %}
 {% block css %}
-  <link rel="stylesheet" href="{% static 'mycss/style.css' %}">
+  <style>
+    .items {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      
+    }
+
+    a.card-title {
+      color: black;
+    }
+    .card {
+      /* Add shadows to create the "card" effect */
+      box-shadow: 0 4px 8px 0 rgba(0,0,0,0.5);
+      transition: 0.3s;
+    }
+
+    /* On mouse-over, add a deeper shadow */
+    .card:hover {
+      box-shadow: 0 8px 16px 0 rgba(0,0,0,0.7);
+    }
+
+    .main-container {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      column-gap: 20px;
+    }
+
+    input[type="radio"] {
+      display: none;
+    }
+
+    .star {
+      font-size: 20px;
+    }
+
+    .rated {
+      color: orange;
+    }
+
+    .rating {
+      counter-reset: rate_value 0;
+    }
+
+    .star.ustar.rated {
+      counter-increment: rate_value 1;
+    }
+
+    .rating::after {
+      margin-top: 20px;
+      display: block;
+      content: "Đánh giá " counter(rate_value) "/5";
+    }
+
+    .form-control {
+      width: 100%;
+    }
+
+    .review-form {
+      display: grid;
+      grid-template-columns: 1fr 2fr;
+      column-gap: 20px;
+    }
+
+    .review-container {
+      margin-bottom: 20px;
+    }
+
+    .user-comment {
+      padding: 5px 10px;
+    }
+
+    .user-comment-rated {
+      margin: auto 10px;
+      color: #393e46;
+      font-weight: lighter;
+    }
+
+    .comment {
+      margin-left: 15px;
+    }
+
+  </style>
 {% endblock %}
 
 {% block content %}
@@ -20,6 +101,7 @@
       <div class="col-6">
         <h4>Thông tin sản phẩm: </h4>
         {% if item.category.name == "Sách" %}
+        <p> Thể loại: {{ item.book.get_book_sub_category }} </p>
         <p> Tác giả: {{ item.book.author }} </p>
         <p> Nhà xuất bản: {{ item.book.publishing_company }} </p>
         <p> Nhà cung cấp: {{ item.brand }} </p>
@@ -42,13 +124,13 @@
       <h4>Đặt hàng ngay:</h4>
       <div>
         Số lượng:
-        <button class='btn-minus' type='button'>
+        <button class='btn-minus btn btn-danger' type='button'>
           <i class='fas fa-minus'></i>
         </button>
         <label for='inpquantity' class='lbl-quantity'>1</label> 
         <input type='text' id='inpquantity' class='inp-quantity d-none'
           name='inpquantity' value='1' readonly size='1'>
-        <button class='btn-plus' type='button'>
+        <button class='btn-plus btn btn-success' type='button'>
           <i class='fas fa-plus'></i>
         </button>
       </div>
@@ -63,10 +145,126 @@
       <input type="hidden" name="quantity" id="quantity" value="1">
       <input type="submit" class="btn btn-primary" value="Add to cart">
     </form>
+    <hr class="my-3">
+    <div class="panel">
+      <h4>Các sản phẩm có liên quan</h4>
+      <div class="items">
+      {% for instance in suggests %}
+        <div class="card m-2" style="width: 16rem;">
+          <img src="{{ instance.item.image.url }}" class="card-img-top" alt="..." height="150px">
+          <div class="card-body bg-dark text-light">
+            <h5><a class="text-light" href="{% url 'item' instance.item.pk %}">{{ instance.item.name }}</a></h5>
+            <p class="card-text">{{ instance.item.cost|floatformat:0|intcomma }} VND</p>
+          </div>
+        </div>
+      {% endfor %}
+      </div>  
+    </div>
+    <hr class="my-3">
+    <div class="review-container">
+      <form method="post" action="{% url 'review' %}">
+        {% csrf_token %}
+        <div class="review-form">
+          <div class="column1"> 
+            <h4 class="head">Đánh giá</h4>
+            <div class="rating" data-rating="0">
+              <input type="radio" name="rating" value="1" class="radios" id="st1"><label for="st1"><span class="star ustar">★</span></label>
+              <input type="radio" name="rating" value="2" class="radios" id="st2"><label for="st2"><span class="star ustar">★</span></label>
+              <input type="radio" name="rating" value="3" class="radios" id="st3"><label for="st3"><span class="star ustar">★</span></label>
+              <input type="radio" name="rating" value="4" class="radios" id="st4"><label for="st4"><span class="star ustar">★</span></label>
+              <input type="radio" name="rating" value="5" class="radios" id="st5"><label for="st5"><span class="star ustar">★</span></label>
+            </div>
+          </div>
+          <div class="column2">
+            <h4 class="head">Bình luận</h4>
+            <input type="hidden" name="item" value="{{ item.pk }}">
+            <textarea rows="3" class="form-control" name="content"></textarea>
+            <div>
+              <button type="submit" class="btn btn-secondary mt-2">Submit</button>
+            </div>
+          </div>
+        </div>
+      </form>
+    </div>
+    <hr class="my-3">
+    <div class="comment-container">
+      <h4 class="head">Đánh giá sản phẩm</h4>
+      <hr>
+      <div class="user-review">
+        {% for i in dstars %}
+            {% if i <= star_average %}
+              <span class="star rated">★</span>
+            {% else %}
+              <span class="star">★</span>
+            {% endif %}
+          {% endfor %}
+        <h5>{{ star_average}} [ {{ review_count }} đánh giá ]</h5> 
+      </div>
+      <hr>
+      {% for review in reviews %}
+      <div class="user-comment">
+        <h5 class="username head">
+          <span><i class="fa fa-user"></i></span> 
+          {{ review.customer.user }} 
+          <span class="user-comment-rated"> đã đánh giá </span> 
+          {% for i in dstars %}
+            {% if i <= review.star %}
+              <span class="star rated">★</span>
+            {% else %}
+              <span class="star">★</span>
+            {% endif %}
+          {% endfor %}
+        </h4>
+        <p class="comment"><span><i class="fa fa-comment"></i></span> Bình luận: {{review.content}}</p>
+        <div class="feedback ml-2">
+          {% for feedback in review.shop_feedback.all %}
+          <p class="comment"><span><i class="fas fa-store"></i></span> Shop phản hồi: {{feedback.content}}</p>
+          {% endfor %}
+        </div>
+      </div>
+      {% empty %}
+        <p>Chưa có đánh giá cho sản phẩm này.</p>
+      {% endfor %}
+    </div>
   </div>
 {% endblock %}
 
 {% block js %}
+  <script>
+    document.addEventListener("DOMContentLoaded", function(){
+    let stars = document.querySelectorAll('.ustar');
+    stars.forEach(function(star) {
+      star.addEventListener('click', setRating);
+    });
+
+    let rating = parseInt(document.querySelector(".rating").getAttribute("data-rating"));
+    if (rating > 0) {
+      let target = stars[rating-1];
+      target.dispatchEvent(new MouseEvent('click'));
+    }
+  });
+
+  function setRating(e) {
+    let span = e.currentTarget;
+    let stars = document.querySelectorAll('.ustar');
+    let match = false;
+    let num = 0;
+    stars.forEach(function(star, index){
+      if (match) {
+        star.classList.remove("rated");
+      }
+      else {
+        star.classList.add("rated");
+      }
+      if (span == star) {
+        match = true;
+        num = index;
+      }
+      document.querySelector(".rating").setAttribute("data-rating", num)
+    });
+
+  }
+  </script>
   <script type="text/javascript">
     function formatNumber (num) {
       return num.toString().replace(/(\d)(?=(\d{3})+(?!\d))/g, "$1,")

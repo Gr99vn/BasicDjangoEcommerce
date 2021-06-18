@@ -28,12 +28,11 @@
 
 {% block content %}
 <div class="container mt-3">
-{% for orderItem in orderItems %}
 <div class="order-item">
   <div class="order-info bg-dark text-light row pt-2">
-    <p class="col-4">Order code: OD{{ orderItem.order.pk }}</p>
-    <p class="col-4">Order time: {{ orderItem.order.order_time }}</p>
-    <p class="col-4">Status: {{ orderItem.order.get_order_status_display }}</p>
+    <p class="col-4">Order code: OD{{ order.pk }}</p>
+    <p class="col-4">Order time: {{ order.order_time }}</p>
+    <p class="col-4">Status: {{ order.get_order_status_display }}</p>
   </div>
   <div class="cart-items">
     <table class="table">
@@ -48,7 +47,7 @@
       </thead>
       <tbody>
         {% load mathfilters %}
-        {% for cartItem in orderItem.cartItems %}
+        {% for cartItem in cartItems %}
         <tr>
           <th scope="row">{{ forloop.counter }}</th>
           <td style="width: 40rem;">{{ cartItem.item.name }}</td>
@@ -62,20 +61,33 @@
   </div>
   <div class="ship-info row">
     <div class="col-8">
-      <p>Ship provider: {{ orderItem.order.shipment.ship_provider }}</p>
-      <p>Ship address: {{ orderItem.order.shipment.ship_address.get_detailed_address }}</p>
-      <p>Phone: {{ orderItem.order.shipment.ship_address.phone }}</p>
+      <p>Ship provider: {{ order.shipment.ship_provider }}</p>
+      <p>Customer: {{ order.customer.user }} </p>
+      <p>Ship address: {{ order.shipment.ship_address.get_detailed_address }}</p>
+      <p>Phone: {{ order.shipment.ship_address.phone }}</p>
     </div>
     <div class="col-4 d-flex" style="flex-direction: column; align-items: flex-end;">
-      <p>Ship fee: {{ orderItem.order.shipment.ship_fee|floatformat:0|intcomma }} VND</p>
-      <p>Total: {{ orderItem.order.total|floatformat:0|intcomma }} VND</p>
+      <p>Ship fee: {{ order.shipment.ship_fee|floatformat:0|intcomma }} VND</p>
+      <p>Total: {{ order.total|floatformat:0|intcomma }} VND</p>
     </div>
   </div>
+  {% with status=order.order_status %}
+  <form action="{% url 'order_management' 'status'%}" method="post" class="mt-2">
+    {% csrf_token %}
+    <input type="hidden" name="order_id" value=" {{ order.pk }} ">
+    {% if status == "NEW" %}
+    <input type="hidden" name="order_status" value="ACCEPTED">
+    <button class="btn btn-success m-1">Chấp nhận đơn hàng</button>
+    {% elif status == "ACCEPTED"%}
+    <input type="hidden" name="order_status" value="DELIVERING">
+    <button class="btn btn-success m-1">Vận chuyển đơn hàng</button>
+    {% elif status == "DELIVERING" %}
+    <input type="hidden" name="order_status" value="COMPLETED">
+    <button class="btn btn-success m-1">Hoàn thành đơn hàng</button>
+    {% endif %}
+    {% endwith %}
+  </form>
 </div>
-<hr class="mt-4 mb-4">
-{% empty %}
-  <h5>No ordered item yet.</h5>
-{% endfor %}
 </div>
 {% endblock %}
 
