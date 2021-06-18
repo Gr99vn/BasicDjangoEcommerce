@@ -1,0 +1,1 @@
+web: gunicorn Ecommerce pip install gunicorn dj-database-url whitenoise psycopg2.wsgi --log-file -
